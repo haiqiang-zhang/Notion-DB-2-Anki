@@ -71,6 +71,7 @@ def export_notion_page_to_html(page_id, notion_api_key):
         return ""
 
 
+
 def notion_blocks_to_html(blocks):
     """
     Convert Notion block data to an HTML string.
@@ -80,29 +81,62 @@ def notion_blocks_to_html(blocks):
     """
     html = ""
 
+    is_number_list = False
+
     # Iterate over each block and generate HTML based on block type
     for block in blocks:
         block_type = block['type']
 
+
+
         if block_type == 'paragraph':
+            if is_number_list:
+                html += "</ol>"
+            is_number_list = False
             text = convert_text_obj_to_plain_text(block['paragraph']['rich_text'])
             html += f"<p>{text}</p>"
+
         elif block_type == 'heading_1':
+            if is_number_list:
+                html += "</ol>"
+            is_number_list = False
             text = block['heading_1']['rich_text'][0]['plain_text']
             html += f"<h1>{text}</h1>"
+
         elif block_type == 'heading_2':
+            if is_number_list:
+                html += "</ol>"
+            is_number_list = False
             text = block['heading_2']['rich_text'][0]['plain_text']
             html += f"<h2>{text}</h2>"
+
         elif block_type == 'heading_3':
+            if is_number_list:
+                html += "</ol>"
+            is_number_list = False
             text = block['heading_3']['rich_text'][0]['plain_text']
             html += f"<h3>{text}</h3>"
+
         elif block_type == 'bulleted_list_item':
-            items = block['bulleted_list_item']['rich_text']
+            if is_number_list:
+                html += "</ol>"
+            is_number_list = False
             html += "<ul>"
-            for item in items:
-                text = item['plain_text']
-                html += f"<li>{text}</li>"
+            html += convert_text_obj_to_plain_text(block['bulleted_list_item']['rich_text'])
             html += "</ul>"
+
+        elif block_type == "numbered_list_item":
+
+            if not is_number_list:
+                html += "<ol>"
+                text = convert_text_obj_to_plain_text(block['numbered_list_item']['rich_text'])
+                html += f"<li>{text}</li>"
+
+            is_number_list = True
+        else:
+            if is_number_list:
+                html += "</ol>"
+            is_number_list = False
 
     return html
 
